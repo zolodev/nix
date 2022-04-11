@@ -17,6 +17,7 @@ nix_tests = \
   ca/gc.sh \
   gc.sh \
   nix-collect-garbage-d.sh \
+  gc-external-daemon.sh \
   remote-store.sh \
   legacy-ssh-store.sh \
   lang.sh \
