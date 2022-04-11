@@ -12,7 +12,7 @@ struct ExperimentalFeatureDetails
     std::string_view description;
 };
 
-constexpr std::array<ExperimentalFeatureDetails, 15> xpFeatureDetails = {{
+constexpr std::array<ExperimentalFeatureDetails, 16> xpFeatureDetails = {{
     {
         .tag = Xp::CaDerivations,
         .name = "ca-derivations",
@@ -227,6 +227,20 @@ constexpr std::array<ExperimentalFeatureDetails, 15> xpFeatureDetails = {{
         .description = R"(
             Allow the use of the `read-only` parameter in [local store](@docroot@/command-ref/new-cli/nix3-help-stores.md#local-store) URIs.
         )",
+    },
+    {
+        .tag = Xp::ExternalGCDaemon,
+        .name = "external-gc-daemon",
+        .description = R"(
+            Make the garbage collector use an external daemon for the tracing.
+
+            This makes it possible to run a multi-user Nix daemon as a non-root
+            user (only the tracing daemon needs to be root), reducing the attack
+            surface a lot.
+
+            This requires more infrastructure and isn't directly supported by the
+            installer.
+        )"
     },
 }};
 
