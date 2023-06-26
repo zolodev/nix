@@ -17,13 +17,14 @@ nix_tests = \
   ca/gc.sh \
   gc.sh \
   nix-collect-garbage-d.sh \
-  gc-external-daemon.sh \
+  gc-external-daemon/gc.sh \
   remote-store.sh \
   legacy-ssh-store.sh \
   lang.sh \
   experimental-features.sh \
   fetchMercurial.sh \
   gc-auto.sh \
+  gc-external-daemon/gc-auto.sh \
   user-envs.sh \
   user-envs-migration.sh \
   binary-cache.sh \
@@ -32,12 +33,14 @@ nix_tests = \
   ca/new-build-cmd.sh \
   nix-build.sh \
   gc-concurrent.sh \
+  gc-external-daemon/gc-concurrent.sh \
   repair.sh \
   fixed.sh \
   export-graph.sh \
   timeout.sh \
   fetchGitRefs.sh \
   gc-runtime.sh \
+  gc-external-daemon/gc-runtime.sh \
   tarball.sh \
   fetchGit.sh \
   fetchurl.sh \
