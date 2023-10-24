@@ -27,12 +27,12 @@ enum struct ExperimentalFeature
     ReplFlake,
     AutoAllocateUids,
     Cgroups,
-    DiscardReferences,
+    ExternalGCDaemon,
     DaemonTrustOverride,
     DynamicDerivations,
     ParseTomlTimestamps,
     ReadOnlyLocalStore,
-    ExternalGCDaemon,
+    ConfigurableImpureEnv,
 };
 
 /**

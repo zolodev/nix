@@ -99,6 +99,8 @@ typedef std::map<StorePath, std::optional<ContentAddress>> StorePathCAMap;
 
 struct StoreConfig : public Config
 {
+    typedef std::map<std::string, std::string> Params;
+
     using Config::Config;
 
     StoreConfig() = delete;
@@ -107,11 +109,26 @@ struct StoreConfig : public Config
 
     virtual ~StoreConfig() { }
 
+    /**
+     * The name of this type of store.
+     */
     virtual const std::string name() = 0;
 
+    /**
+     * Documentation for this type of store.
+     */
     virtual std::string doc()
     {
         return "";
+    }
+
+    /**
+     * An experimental feature this type store is gated, if it is to be
+     * experimental.
+     */
+    virtual std::optional<ExperimentalFeature> experimentalFeature() const
+    {
+        return std::nullopt;
     }
 
     const PathSetting storeDir_{this, settings.nixStore,
@@ -136,27 +153,26 @@ struct StoreConfig : public Config
 
     Setting<int> priority{this, 0, "priority",
         R"(
-          Priority of this store when used as a substituter. A lower value means a higher priority.
+          Priority of this store when used as a [substituter](@docroot@/command-ref/conf-file.md#conf-substituters).
+          A lower value means a higher priority.
         )"};
 
     Setting<bool> wantMassQuery{this, false, "want-mass-query",
         R"(
-          Whether this store (when used as a substituter) can be
-          queried efficiently for path validity.
+          Whether this store can be queried efficiently for path validity when used as a [substituter](@docroot@/command-ref/conf-file.md#conf-substituters).
         )"};
 
     Setting<StringSet> systemFeatures{this, getDefaultSystemFeatures(),
         "system-features",
-        "Optional features that the system this store builds on implements (like \"kvm\")."};
+        R"(
+          Optional [system features](@docroot@/command-ref/conf-file.md#conf-system-features) available on the system this store uses to build derivations.
 
+          Example: `"kvm"`
+        )" };
 };
 
 class Store : public std::enable_shared_from_this<Store>, public virtual StoreConfig
 {
-public:
-
-    typedef std::map<std::string, std::string> Params;
-
 protected:
 
     struct PathInfoCacheValue {
@@ -276,14 +292,15 @@ public:
     StorePath makeFixedOutputPathFromCA(std::string_view name, const ContentAddressWithReferences & ca) const;
 
     /**
-     * Preparatory part of addToStore().
-     *
-     * @return the store path to which srcPath is to be copied
-     * and the cryptographic hash of the contents of srcPath.
+     * Read-only variant of addToStoreFromDump(). It returns the store
+     * path to which a NAR or flat file would be written.
      */
-    std::pair<StorePath, Hash> computeStorePathForPath(std::string_view name,
-        const Path & srcPath, FileIngestionMethod method = FileIngestionMethod::Recursive,
-        HashType hashAlgo = htSHA256, PathFilter & filter = defaultPathFilter) const;
+    std::pair<StorePath, Hash> computeStorePathFromDump(
+        Source & dump,
+        std::string_view name,
+        FileIngestionMethod method = FileIngestionMethod::Recursive,
+        HashType hashAlgo = htSHA256,
+        const StorePathSet & references = {}) const;
 
     /**
      * Preparatory part of addTextToStore().
@@ -425,7 +442,20 @@ public:
      * derivation. All outputs are mentioned so ones mising the mapping
      * are mapped to `std::nullopt`.
      */
-    virtual std::map<std::string, std::optional<StorePath>> queryPartialDerivationOutputMap(const StorePath & path);
+    virtual std::map<std::string, std::optional<StorePath>> queryPartialDerivationOutputMap(
+        const StorePath & path,
+        Store * evalStore = nullptr);
+
+    /**
+     * Like `queryPartialDerivationOutputMap` but only considers
+     * statically known output paths (i.e. those that can be gotten from
+     * the derivation itself.
+     *
+     * Just a helper function for implementing
+     * `queryPartialDerivationOutputMap`.
+     */
+    virtual std::map<std::string, std::optional<StorePath>> queryStaticPartialDerivationOutputMap(
+        const StorePath & path);
 
     /**
      * Query the mapping outputName=>outputPath for the given derivation.
@@ -647,7 +677,7 @@ public:
      */
     nlohmann::json pathInfoToJSON(const StorePathSet & storePaths,
         bool includeImpureInfo, bool showClosureSize,
-        Base hashBase = Base32,
+        HashFormat hashFormat = HashFormat::Base32,
         AllowInvalidFlag allowInvalid = DisallowInvalid);
 
     /**
@@ -919,6 +949,7 @@ void removeTempRoots();
  * Resolve the derived path completely, failing if any derivation output
  * is unknown.
  */
+StorePath resolveDerivedPath(Store &, const SingleDerivedPath &, Store * evalStore = nullptr);
 OutputPathMap resolveDerivedPath(Store &, const DerivedPath::Built &, Store * evalStore = nullptr);
 
 

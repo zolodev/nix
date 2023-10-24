@@ -2,6 +2,7 @@
 ///@file
 
 #include <cassert>
+#include <climits>
 
 #include "symbol-table.hh"
 #include "value/context.hh"
@@ -137,11 +138,11 @@ private:
 
     friend std::string showType(const Value & v);
 
-    void print(const SymbolTable & symbols, std::ostream & str, std::set<const void *> * seen) const;
+    void print(const SymbolTable &symbols, std::ostream &str, std::set<const void *> *seen, int depth) const;
 
 public:
 
-    void print(const SymbolTable & symbols, std::ostream & str, bool showRepeated = false) const;
+    void print(const SymbolTable &symbols, std::ostream &str, bool showRepeated = false, int depth = INT_MAX) const;
 
     // Functions needed to distinguish the type
     // These should be removed eventually, by putting the functionality that's
@@ -185,11 +186,15 @@ public:
          * For canonicity, the store paths should be in sorted order.
          */
         struct {
-            const char * s;
+            const char * c_str;
             const char * * context; // must be in sorted order
         } string;
 
-        const char * _path;
+        struct {
+            InputAccessor * accessor;
+            const char * path;
+        } _path;
+
         Bindings * attrs;
         struct {
             size_t size;
@@ -218,8 +223,11 @@ public:
     /**
      * Returns the normal type of a Value. This only returns nThunk if
      * the Value hasn't been forceValue'd
+     *
+     * @param invalidIsThunk Instead of aborting an an invalid (probably
+     * 0, so uninitialized) internal type, return `nThunk`.
      */
-    inline ValueType type() const
+    inline ValueType type(bool invalidIsThunk = false) const
     {
         switch (internalType) {
             case tInt: return nInt;
@@ -234,7 +242,10 @@ public:
             case tFloat: return nFloat;
             case tThunk: case tApp: case tBlackhole: return nThunk;
         }
-        abort();
+        if (invalidIsThunk)
+            return nThunk;
+        else
+            abort();
     }
 
     /**
@@ -263,7 +274,7 @@ public:
     inline void mkString(const char * s, const char * * context = 0)
     {
         internalType = tString;
-        string.s = s;
+        string.c_str = s;
         string.context = context;
     }
 
@@ -280,11 +291,12 @@ public:
 
     void mkPath(const SourcePath & path);
 
-    inline void mkPath(const char * path)
+    inline void mkPath(InputAccessor * accessor, const char * path)
     {
         clearValue();
         internalType = tPath;
-        _path = path;
+        _path.accessor = accessor;
+        _path.path = path;
     }
 
     inline void mkNull()
@@ -431,13 +443,27 @@ public:
     SourcePath path() const
     {
         assert(internalType == tPath);
-        return SourcePath{CanonPath(_path)};
+        return SourcePath {
+            .accessor = ref(_path.accessor->shared_from_this()),
+            .path = CanonPath(CanonPath::unchecked_t(), _path.path)
+        };
     }
 
-    std::string_view str() const
+    std::string_view string_view() const
     {
         assert(internalType == tString);
-        return std::string_view(string.s);
+        return std::string_view(string.c_str);
+    }
+
+    const char * const c_str() const
+    {
+        assert(internalType == tString);
+        return string.c_str;
+    }
+
+    const char * * context() const
+    {
+        return string.context;
     }
 };
 

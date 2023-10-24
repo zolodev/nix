@@ -163,6 +163,8 @@ constexpr std::array<ExperimentalFeatureDetails, 16> xpFeatureDetails = {{
         .tag = Xp::ReplFlake,
         .name = "repl-flake",
         .description = R"(
+            *Enabled with [`flakes`](#xp-feature-flakes) since 2.19*
+
             Allow passing [installables](@docroot@/command-ref/new-cli/nix.md#installables) to `nix repl`, making its interface consistent with the other experimental commands.
         )",
     },
@@ -171,7 +173,7 @@ constexpr std::array<ExperimentalFeatureDetails, 16> xpFeatureDetails = {{
         .name = "auto-allocate-uids",
         .description = R"(
             Allows Nix to automatically pick UIDs for builds, rather than creating
-            `nixbld*` user accounts. See the [`auto-allocate-uids`](#conf-auto-allocate-uids) setting for details.
+            `nixbld*` user accounts. See the [`auto-allocate-uids`](@docroot@/command-ref/conf-file.md#conf-auto-allocate-uids) setting for details.
         )",
     },
     {
@@ -179,17 +181,22 @@ constexpr std::array<ExperimentalFeatureDetails, 16> xpFeatureDetails = {{
         .name = "cgroups",
         .description = R"(
             Allows Nix to execute builds inside cgroups. See
-            the [`use-cgroups`](#conf-use-cgroups) setting for details.
+            the [`use-cgroups`](@docroot@/command-ref/conf-file.md#conf-use-cgroups) setting for details.
         )",
     },
     {
-        .tag = Xp::DiscardReferences,
-        .name = "discard-references",
+        .tag = Xp::ExternalGCDaemon,
+        .name = "external-gc-daemon",
         .description = R"(
-            Allow the use of the [`unsafeDiscardReferences`](@docroot@/language/advanced-attributes.html#adv-attr-unsafeDiscardReferences) attribute in derivations
-            that use [structured attributes](@docroot@/language/advanced-attributes.html#adv-attr-structuredAttrs). This disables scanning of outputs for
-            runtime dependencies.
-        )",
+            Make the garbage collector use an external daemon for the tracing.
+
+            This makes it possible to run a multi-user Nix daemon as a non-root
+            user (only the tracing daemon needs to be root), reducing the attack
+            surface a lot.
+
+            This requires more infrastructure and isn't directly supported by the
+            installer.
+        )"
     },
     {
         .tag = Xp::DaemonTrustOverride,
@@ -229,19 +236,12 @@ constexpr std::array<ExperimentalFeatureDetails, 16> xpFeatureDetails = {{
         )",
     },
     {
-        .tag = Xp::ExternalGCDaemon,
-        .name = "external-gc-daemon",
+        .tag = Xp::ConfigurableImpureEnv,
+        .name = "configurable-impure-env",
         .description = R"(
-            Make the garbage collector use an external daemon for the tracing.
-
-            This makes it possible to run a multi-user Nix daemon as a non-root
-            user (only the tracing daemon needs to be root), reducing the attack
-            surface a lot.
-
-            This requires more infrastructure and isn't directly supported by the
-            installer.
-        )"
-    },
+            Allow the use of the [impure-env](@docroot@/command-ref/conf-file.md#conf-impure-env) setting.
+        )",
+    }
 }};
 
 static_assert(
@@ -295,7 +295,7 @@ std::set<ExperimentalFeature> parseFeatures(const std::set<std::string> & rawFea
 }
 
 MissingExperimentalFeature::MissingExperimentalFeature(ExperimentalFeature feature)
-    : Error("experimental Nix feature '%1%' is disabled; use '--extra-experimental-features %1%' to override", showExperimentalFeature(feature))
+    : Error("experimental Nix feature '%1%' is disabled; add '--extra-experimental-features %1%' to enable it", showExperimentalFeature(feature))
     , missingFeature(feature)
 {}
 
