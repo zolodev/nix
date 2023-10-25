@@ -21,7 +21,7 @@ in
 
   remoteBuilds = runNixOSTestFor "x86_64-linux" ./remote-builds.nix;
 
-  rootless-daemon = runNixOSTestFor "x86_64-linux" ./rootless-daemon;
+  rootless-daemon = runNixOSTestFor "x86_64-linux" ./rootless-daemon.nix;
 
   nix-copy-closure = runNixOSTestFor "x86_64-linux" ./nix-copy-closure.nix;
 
