@@ -33,6 +33,7 @@ enum struct ExperimentalFeature
     ParseTomlTimestamps,
     ReadOnlyLocalStore,
     ConfigurableImpureEnv,
+    VerifiedFetches,
 };
 
 /**
