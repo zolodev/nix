@@ -12,7 +12,7 @@ struct ExperimentalFeatureDetails
     std::string_view description;
 };
 
-constexpr std::array<ExperimentalFeatureDetails, 16> xpFeatureDetails = {{
+constexpr std::array<ExperimentalFeatureDetails, 17> xpFeatureDetails = {{
     {
         .tag = Xp::CaDerivations,
         .name = "ca-derivations",
