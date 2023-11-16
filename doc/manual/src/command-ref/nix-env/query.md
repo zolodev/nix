@@ -110,7 +110,10 @@ derivation is shown unless `--no-name` is specified.
     Print the `system` attribute of the derivation.
 
   - `--drv-path`\
-    Print the path of the [store derivation](@docroot@/glossary.md#gloss-store-derivation).
+    Print the [store path] to the [derivation].
+
+    [store path]: @docroot@/glossary.md#gloss-store-path
+    [derivation]: @docroot@/glossary.md#gloss-derivation
 
   - `--out-path`\
     Print the output path of the derivation.
