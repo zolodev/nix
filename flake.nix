@@ -1,7 +1,7 @@
 {
   description = "The purely functional package manager";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05-small";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11-small";
   inputs.nixpkgs-regression.url = "github:NixOS/nixpkgs/215d4d0fd80ca5163643b03a33fde804a29cc1e2";
   inputs.lowdown-src = { url = "github:kristapsdz/lowdown"; flake = false; };
   inputs.flake-compat = { url = "github:edolstra/flake-compat"; flake = false; };
@@ -49,13 +49,7 @@
             })
             stdenvs);
 
-      # Experimental fileset library: https://github.com/NixOS/nixpkgs/pull/222981
-      # Not an "idiomatic" flake input because:
-      #  - Propagation to dependent locks: https://github.com/NixOS/nix/issues/7730
-      #  - Subflake would download redundant and huge parent flake
-      #  - No git tree hash support: https://github.com/NixOS/nix/issues/6044
-      inherit (import (builtins.fetchTarball { url = "https://github.com/NixOS/nix/archive/1bdcd7fc8a6a40b2e805bad759b36e64e911036b.tar.gz"; sha256 = "sha256:14ljlpdsp4x7h1fkhbmc4bd3vsqnx8zdql4h3037wh09ad6a0893"; }))
-        fileset;
+      inherit (nixpkgs.lib) fileset;
 
       baseFiles =
         # .gitignore has already been processed, so any changes in it are irrelevant
