@@ -673,6 +673,8 @@ struct GitExportIgnoreInputAccessor : FilteringInputAccessor {
     bool isExportIgnored(const CanonPath & path) {
         const char *exportIgnoreEntry = nullptr;
 
+        // FIXME: this does not seem to use `rev` at all!!!
+
         // GIT_ATTR_CHECK_INDEX_ONLY:
         // > It will use index only for creating archives or for a bare repo
         // > (if an index has been specified for the bare repo).
