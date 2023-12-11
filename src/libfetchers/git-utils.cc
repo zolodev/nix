@@ -697,7 +697,7 @@ struct GitExportIgnoreInputAccessor : FilteringInputAccessor {
 
 };
 
-ref<GitInputAccessor> GitRepoImpl::getRawAccessor(const Hash &rev)
+ref<GitInputAccessor> GitRepoImpl::getRawAccessor(const Hash & rev)
 {
     auto self = ref<GitRepoImpl>(shared_from_this());
     return make_ref<GitInputAccessor>(self, rev);
