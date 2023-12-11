@@ -118,3 +118,37 @@ cloneRepo=$TEST_ROOT/a/b/gitSubmodulesClone # NB /a/b to make the relative path 
 git clone $rootRepo $cloneRepo
 pathIndirect=$(nix eval --raw --expr "(builtins.fetchGit { url = file://$cloneRepo; rev = \"$rev2\"; submodules = true; }).outPath")
 [[ $pathIndirect = $pathWithRelative ]]
+
+# Test submodule export-ignore interaction
+git -C $rootRepo/sub config user.email "foobar@example.com"
+git -C $rootRepo/sub config user.name "Foobar"
+
+echo "/exclude-from-root export-ignore" >> $rootRepo/.gitattributes
+echo nope > $rootRepo/exclude-from-root
+git -C $rootRepo add .gitattributes exclude-from-root
+git -C $rootRepo commit -m "Add export-ignore"
+
+echo "/exclude-from-sub export-ignore" >> $rootRepo/sub/.gitattributes
+echo nope > $rootRepo/sub/exclude-from-sub
+git -C $rootRepo/sub add .gitattributes exclude-from-sub
+git -C $rootRepo/sub commit -m "Add export-ignore (sub)"
+
+git -C $rootRepo add sub
+git -C $rootRepo commit -m "Update submodule"
+
+git -C $rootRepo status
+
+pathWithExportIgnore=$(nix eval --impure --raw --expr "(builtins.fetchGit { url = file://$rootRepo; submodules = true; }).outPath")
+find $pathWithExportIgnore
+
+pathWithoutExportIgnore=$(nix eval --impure --raw --expr "(builtins.fetchGit { url = file://$rootRepo; submodules = true; exportIgnore = false; }).outPath")
+find $pathWithoutExportIgnore
+
+[[ ! -e $pathWithExportIgnore/exclude-from-root ]]
+[[ ! -e $pathWithExportIgnore/sub/exclude-from-sub ]]
+
+[[ -e $pathWithoutExportIgnore/exclude-from-root ]]
+[[ -e $pathWithoutExportIgnore/sub/exclude-from-sub ]]
+
+echo ok
+false
