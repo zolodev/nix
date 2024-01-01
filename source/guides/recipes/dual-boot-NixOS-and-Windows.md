@@ -1,4 +1,4 @@
-(dual boot)=
+(dualboot)=
 # Dual boot NixOS
 It is recommended to use Systemd boot over Grub bootloader.
 This how to is a short introduction to `systemd bootloaded` options. To get a brief understanding of how it works.
